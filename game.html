@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game · The Trading Game — PatternDesk</title>
+<meta name="description" content="An unlabeled 30-second price history scrolls by. Hold to buy, release to sell, then see your return vs. simply buying and holding.">
+<meta name="theme-color" content="#100b24">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:title" content="The Trading Game — PatternDesk">
+<meta property="og:description" content="Hold to buy, release to sell. See your return vs. buying and holding.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="noise"></div>
+
+<header>
+  <div class="wrap headrow">
+    <a href="index.html" class="brand" style="text-decoration:none;color:inherit;">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="12" width="3" height="8" rx="1" fill="#fff"/>
+          <rect x="10.5" y="6" width="3" height="14" rx="1" fill="#fff"/>
+          <rect x="18" y="9" width="3" height="11" rx="1" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="brand-text">Pattern<span>Desk</span></div>
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">Home</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="game.html" class="on">Game</a>
+      <a href="shop.html">Shop</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" style="padding:clamp(20px,5vw,32px) clamp(12px,4vw,24px) 64px;">
+
+  <div id="tg-root"></div>
+  <style>
+    #tg-root {
+      --bg: #100b24;
+      --panel: #1b1438;
+      --amber: #FFC94D;
+      --amber-dim: #8a6a2e;
+      --green: #2FE6A5;
+      --red: #FF5D78;
+      --violet: #8b6bff;
+      --pink: #ff7fd8;
+      --text: #f7f3ff;
+      --text-dim: #b4a8dd;
+      --grid: #362a63;
+      font-family: 'IBM Plex Mono', 'SF Mono', Menlo, monospace;
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid var(--grid);
+      max-width: 720px;
+      margin: 0 auto;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #tg-root * { box-sizing: border-box; }
+
+    .tg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--grid);
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+    .tg-title {
+      font-size: 13px;
+      letter-spacing: 2px;
+      background: linear-gradient(120deg, var(--amber), var(--pink));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .tg-sub {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .tg-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .tg-stat {
+      background: var(--panel);
+      border: 1px solid var(--grid);
+      padding: 8px 10px;
+      border-radius: 12px;
+      transition: transform .15s ease, border-color .15s ease;
+    }
+    .tg-stat:hover {
+      transform: translateY(-2px);
+      border-color: var(--violet);
+    }
+    .tg-stat-label {
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .tg-stat-value {
+      font-size: 15px;
+      margin-top: 3px;
+      font-variant-numeric: tabular-nums;
+    }
+    .tg-stat-value.pos { color: var(--green); }
+    .tg-stat-value.neg { color: var(--red); }
+
+    .tg-chart-wrap {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--grid);
+      border-radius: 14px;
+      overflow: hidden;
+      touch-action: none;
+      cursor: pointer;
+    }
+    #tg-root canvas { display: block; width: 100%; height: clamp(220px, 42vw, 340px); }
+
+    @media (max-width: 480px) {
+      #tg-root { padding: 14px; border-radius: 16px; }
+      .tg-header { flex-direction: column; gap: 4px; align-items: flex-start; }
+      .tg-stats { grid-template-columns: repeat(2, 1fr); }
+      #tg-root canvas { height: 280px; }
+      .tg-result-grid { grid-template-columns: 1fr; max-width: 100%; }
+      .tg-dash-grid { grid-template-columns: 1fr; }
+    }
+
+    .tg-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10,13,18,0.94);
+      text-align: center;
+      padding: 20px;
+    }
+    .tg-overlay h2 {
+      color: var(--amber);
+      font-size: 16px;
+      letter-spacing: 1px;
+      margin: 0 0 6px 0;
+      text-transform: uppercase;
+    }
+    .tg-overlay p {
+      color: var(--text-dim);
+      font-size: 12px;
+      max-width: 380px;
+      line-height: 1.6;
+      margin: 4px 0 14px 0;
+    }
+    .tg-btn {
+      background: linear-gradient(135deg, var(--amber), var(--pink));
+      color: #1a1305;
+      border: none;
+      padding: 11px 24px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease;
+      box-shadow: 0 8px 18px -8px rgba(255,201,77,0.5);
+    }
+    .tg-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 22px -8px rgba(255,127,216,0.55); }
+    .tg-btn:active { transform: translateY(0) scale(0.97); }
+    .tg-btn.ghost {
+      background: transparent;
+      border: 1px solid var(--amber-dim);
+      color: var(--amber);
+      box-shadow: none;
+    }
+
+    .tg-result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin: 10px 0 16px 0;
+      width: 100%;
+      max-width: 420px;
+    }
+    .tg-result-cell {
+      border: 1px solid var(--grid);
+      border-radius: 12px;
+      padding: 8px;
+    }
+    .tg-result-cell .l { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;}
+    .tg-result-cell .v { font-size: 16px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+    .tg-hint {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+    }
+    .tg-footnote {
+      font-size: 10px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-top: 14px;
+      border-top: 1px solid var(--grid);
+      padding-top: 10px;
+    }
+    .tg-holding-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--green);
+      color: #0a0a0a;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      opacity: 0;
+      transition: opacity 0.15s, background-color 0.15s;
+    }
+    .tg-holding-badge.on { opacity: 1; }
+    .tg-holding-badge.win { background: var(--green); }
+    .tg-holding-badge.lose { background: var(--red); }
+    .tg-timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tg-dash {
+      margin-top: 18px;
+      border-top: 1px solid var(--grid);
+      padding-top: 14px;
+    }
+    .tg-dash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .tg-dash-title {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--amber);
+      text-transform: uppercase;
+    }
+    .tg-dash-reset {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
+    }
+    .tg-dash-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .tg-dash-cell {
+      background: var(--panel);
+      border: 1px solid var(--grid);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .tg-dash-cell .l {
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .tg-dash-cell .v {
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+    .tg-dash-cell .v .split {
+      color: var(--text-dim);
+      font-size: 12px;
+      margin: 0 3px;
+    }
+    .tg-dash-empty {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      padding: 4px 0;
+    }
+    .tg-dash-note {
+      font-size: 10px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+  </style>
+
+  <script>
+  (function() {
+    const root = document.getElementById('tg-root');
+
+    root.innerHTML = `
+      <div class="tg-header">
+        <div class="tg-title">The Trading Game</div>
+        <div class="tg-sub">Practice sim &middot; not real market data</div>
+      </div>
+      <div class="tg-stats">
+        <div class="tg-stat"><div class="tg-stat-label">Cash</div><div class="tg-stat-value" id="tg-cash">$500</div></div>
+        <div class="tg-stat"><div class="tg-stat-label">Return</div><div class="tg-stat-value" id="tg-return">0.0%</div></div>
+        <div class="tg-stat"><div class="tg-stat-label">Trades</div><div class="tg-stat-value" id="tg-trades">0</div></div>
+        <div class="tg-stat"><div class="tg-stat-label">Round</div><div class="tg-stat-value" id="tg-round">1</div></div>
+      </div>
+      <div class="tg-chart-wrap" id="tg-chart-wrap">
+        <canvas id="tg-canvas"></canvas>
+        <div class="tg-holding-badge" id="tg-badge">HOLDING</div>
+        <div class="tg-timer" id="tg-timer">30.0s</div>
+        <div class="tg-overlay" id="tg-overlay">
+          <h2>Beat the market</h2>
+          <p>A 30-second unlabeled price history will scroll by. Press and hold (mouse, touch, or spacebar) to buy. Release to sell. Trade as often as you like. At the end you'll see how you did versus simply buying and holding.</p>
+          <button class="tg-btn" id="tg-start">Start Round</button>
+        </div>
+      </div>
+      <div class="tg-hint" id="tg-hint">Hold to buy &middot; release to sell &middot; spacebar works too</div>
+      <div class="tg-dash">
+        <div class="tg-dash-header">
+          <div class="tg-dash-title">Your patterns</div>
+          <button class="tg-dash-reset" id="tg-dash-reset">Reset my data</button>
+        </div>
+        <div id="tg-dash-body"><div class="tg-dash-empty">Loading your trade history&hellip;</div></div>
+      </div>
+      <div class="tg-footnote">
+        Synthetic price paths for practice only — not real historical securities, and not investment advice.
+        This sim has zero fees, zero slippage, and no counterparty, so results here will always look better
+        than real trading. Results here do not guarantee outcomes of any trading approach.
+      </div>
+    `;
+
+    const canvas = root.querySelector('#tg-canvas');
+    const ctx = canvas.getContext('2d');
+    const chartWrap = root.querySelector('#tg-chart-wrap');
+    const overlay = root.querySelector('#tg-overlay');
+    const startBtn = root.querySelector('#tg-start');
+    const badge = root.querySelector('#tg-badge');
+    const timerEl = root.querySelector('#tg-timer');
+    const cashEl = root.querySelector('#tg-cash');
+    const returnEl = root.querySelector('#tg-return');
+    const tradesEl = root.querySelector('#tg-trades');
+    const roundEl = root.querySelector('#tg-round');
+    const dashBody = root.querySelector('#tg-dash-body');
+    const dashReset = root.querySelector('#tg-dash-reset');
+
+    const STORAGE_KEY = 'tg-trade-history';
+    const ROUNDS_KEY = 'tg-rounds-played';
+    let tradeHistory = [];
+    let roundsPlayed = 0;
+    let historyLoaded = false;
+
+    const DURATION_MS = 30000;
+    const N_POINTS = 400;
+    const START_CASH = 500;
+
+    let round = 1;
+    let path = [];
+    let running = false;
+    let startTime = 0;
+    let holding = false;
+    let entryPrice = 0;
+    let buyTimeMs = 0;
+    let chasedUp = false;
+    let cash = START_CASH;
+    let trades = 0;
+    let rafId = null;
+    let dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    function genPath() {
+      const regimes = [
+        { drift: 0.0009, vol: 0.012 },
+        { drift: -0.0006, vol: 0.014 },
+        { drift: 0.0002, vol: 0.022 },
+        { drift: 0.0015, vol: 0.009 },
+        { drift: -0.0012, vol: 0.018 },
+      ];
+      const r = regimes[Math.floor(Math.random() * regimes.length)];
+      let price = 40 + Math.random() * 60;
+      const arr = [price];
+      for (let i = 1; i < N_POINTS; i++) {
+        const shock = (Math.random() - 0.5) * 2;
+        const meanRevert = (60 - price) * 0.0004;
+        price = Math.max(2, price * (1 + r.drift + shock * r.vol) + meanRevert);
+        arr.push(price);
+      }
+      return arr;
+    }
+
+    function resizeCanvas() {
+      const rect = chartWrap.getBoundingClientRect();
+      dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function priceAt(t) {
+      const idx = t * (N_POINTS - 1);
+      const i0 = Math.floor(idx);
+      const i1 = Math.min(N_POINTS - 1, i0 + 1);
+      const frac = idx - i0;
+      return path[i0] + (path[i1] - path[i0]) * frac;
+    }
+
+    const POINTS_PER_CANDLE = 8;
+    const WINDOW_CANDLES = 24;
+    const COLOR_AMBER = '#FFC94D';
+    const COLOR_GREEN = '#2FE6A5';
+    const COLOR_RED = '#FF5D78';
+
+    function draw(elapsedFrac) {
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = '#1f2732';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx <= 8; gx++) {
+        const x = (w / 8) * gx;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let gy = 0; gy <= 4; gy++) {
+        const y = (h / 4) * gy;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      const visibleCount = Math.max(1, Math.floor(elapsedFrac * N_POINTS) + 1);
+
+      const totalCandles = Math.ceil(visibleCount / POINTS_PER_CANDLE);
+      const firstCandle = Math.max(0, totalCandles - WINDOW_CANDLES);
+      const candles = [];
+      for (let c = firstCandle; c < totalCandles; c++) {
+        const pStart = c * POINTS_PER_CANDLE;
+        const pEnd = Math.min(visibleCount, (c + 1) * POINTS_PER_CANDLE);
+        const slice = path.slice(pStart, pEnd);
+        if (!slice.length) continue;
+        candles.push({
+          open: slice[0],
+          close: slice[slice.length - 1],
+          high: Math.max(...slice),
+          low: Math.min(...slice),
+        });
+      }
+      if (!candles.length) return;
+
+      const allHighs = candles.map(cd => cd.high);
+      const allLows = candles.map(cd => cd.low);
+      const min = Math.min(...allLows, holding ? entryPrice : Infinity);
+      const max = Math.max(...allHighs, holding ? entryPrice : -Infinity);
+      const padY = (max - min) * 0.15 || 1;
+      const lo = min - padY, hi = max + padY;
+      const yFor = (p) => h - ((p - lo) / (hi - lo)) * h;
+
+      const candleW = (w / WINDOW_CANDLES) * 0.62;
+      const slotOffset = WINDOW_CANDLES - candles.length;
+      let lastClose = candles[candles.length - 1].close;
+      let lastColor = COLOR_AMBER;
+
+      candles.forEach((cd, i) => {
+        const color = holding ? (cd.close >= entryPrice ? COLOR_GREEN : COLOR_RED) : COLOR_AMBER;
+        if (i === candles.length - 1) lastColor = color;
+
+        const xCenter = (slotOffset + i + 0.5) / WINDOW_CANDLES * w;
+        const yOpen = yFor(cd.open), yClose = yFor(cd.close), yHigh = yFor(cd.high), yLow = yFor(cd.low);
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(xCenter, yHigh);
+        ctx.lineTo(xCenter, yLow);
+        ctx.stroke();
+
+        const bodyTop = Math.min(yOpen, yClose);
+        const bodyH = Math.max(1.5, Math.abs(yClose - yOpen));
+        ctx.fillStyle = color;
+        ctx.fillRect(xCenter - candleW / 2, bodyTop, candleW, bodyH);
+      });
+
+      if (holding) {
+        const yEntry = yFor(entryPrice);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(232,230,223,0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, yEntry);
+        ctx.lineTo(w, yEntry);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      const lastY = yFor(lastClose);
+      ctx.beginPath();
+      ctx.arc((WINDOW_CANDLES - 0.5) / WINDOW_CANDLES * w, lastY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = lastColor;
+      ctx.fill();
+    }
+
+    function updateStats() {
+      cashEl.textContent = '$' + cash.toFixed(2);
+      const ret = ((cash - START_CASH) / START_CASH) * 100;
+      returnEl.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%';
+      returnEl.className = 'tg-stat-value ' + (ret >= 0 ? 'pos' : 'neg');
+      tradesEl.textContent = trades;
+      roundEl.textContent = round;
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await window.storage.get(STORAGE_KEY, false);
+        tradeHistory = res ? JSON.parse(res.value) : [];
+      } catch (e) {
+        tradeHistory = [];
+      }
+      try {
+        const res2 = await window.storage.get(ROUNDS_KEY, false);
+        roundsPlayed = res2 ? JSON.parse(res2.value) : 0;
+      } catch (e) {
+        roundsPlayed = 0;
+      }
+      historyLoaded = true;
+      renderDashboard();
+    }
+
+    async function saveRoundsPlayed() {
+      try {
+        await window.storage.set(ROUNDS_KEY, JSON.stringify(roundsPlayed), false);
+      } catch (e) {}
+    }
+
+    async function saveHistory() {
+      try {
+        await window.storage.set(STORAGE_KEY, JSON.stringify(tradeHistory.slice(-500)), false);
+      } catch (e) {}
+    }
+
+    function recordTrade(entry, exit, holdMs, chasedUp) {
+      tradeHistory.push({ ret: (exit - entry) / entry, holdMs, chasedUp, ts: Date.now() });
+      saveHistory();
+      renderDashboard();
+    }
+
+    function fmtSecs(ms) {
+      if (!isFinite(ms)) return '—';
+      return (ms / 1000).toFixed(1) + 's';
+    }
+
+    function renderDashboard() {
+      if (!historyLoaded) return;
+      if (!tradeHistory.length) {
+        dashBody.innerHTML = '<div class="tg-dash-empty">Play a few rounds and this will start showing your actual trading patterns — win rate, how long you hold winners vs losers, and whether you tend to chase upward moves.</div>';
+        return;
+      }
+
+      const n = tradeHistory.length;
+      const wins = tradeHistory.filter(t => t.ret >= 0);
+      const losses = tradeHistory.filter(t => t.ret < 0);
+      const winRate = (wins.length / n) * 100;
+
+      const avg = (arr, sel) => arr.length ? arr.reduce((s, t) => s + sel(t), 0) / arr.length : NaN;
+      const avgHoldWin = avg(wins, t => t.holdMs);
+      const avgHoldLose = avg(losses, t => t.holdMs);
+
+      const chased = tradeHistory.filter(t => t.chasedUp);
+      const chaseRate = (chased.length / n) * 100;
+
+      const tradesPerRoundLabel = roundsPlayed > 0 ? (n / roundsPlayed).toFixed(1) : '—';
+
+      let holdCompareHtml;
+      if (wins.length && losses.length) {
+        holdCompareHtml = `${fmtSecs(avgHoldWin)} <span class="split">win</span> / ${fmtSecs(avgHoldLose)} <span class="split">lose</span>`;
+      } else {
+        holdCompareHtml = 'Need both a win and a loss to compare';
+      }
+
+      dashBody.innerHTML = `
+        <div class="tg-dash-grid">
+          <div class="tg-dash-cell">
+            <div class="l">Win rate</div>
+            <div class="v">${winRate.toFixed(0)}% <span class="split">&middot;</span> ${n} trade${n === 1 ? '' : 's'}</div>
+          </div>
+          <div class="tg-dash-cell">
+            <div class="l">Chased an upward move</div>
+            <div class="v">${chaseRate.toFixed(0)}% of buys</div>
+          </div>
+          <div class="tg-dash-cell">
+            <div class="l">Hold time, winners vs losers</div>
+            <div class="v">${holdCompareHtml}</div>
+          </div>
+          <div class="tg-dash-cell">
+            <div class="l">Trades per round</div>
+            <div class="v">${tradesPerRoundLabel}</div>
+          </div>
+        </div>
+        <div class="tg-dash-note">
+          "Chased" means you bought right after price had already been rising for ~2 seconds.
+          Research on the disposition effect finds many traders hold losing positions longer than
+          winning ones, hoping for a recovery — this panel just shows you your own numbers, no
+          judgment attached.
+        </div>
+      `;
+    }
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const frac = Math.min(1, elapsed / DURATION_MS);
+      draw(frac);
+      timerEl.textContent = Math.max(0, (DURATION_MS - elapsed) / 1000).toFixed(1) + 's';
+
+      if (holding) {
+        const curPrice = priceAt(frac);
+        const live = cash * (curPrice / entryPrice);
+        cashEl.textContent = '$' + live.toFixed(2);
+        const ret = ((live - START_CASH) / START_CASH) * 100;
+        returnEl.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%';
+        returnEl.className = 'tg-stat-value ' + (ret >= 0 ? 'pos' : 'neg');
+
+        const posPnl = ((curPrice - entryPrice) / entryPrice) * 100;
+        const winning = posPnl >= 0;
+        badge.textContent = (winning ? '+' : '') + posPnl.toFixed(1) + '%';
+        badge.classList.toggle('win', winning);
+        badge.classList.toggle('lose', !winning);
+      }
+
+      if (frac >= 1) {
+        endRound(frac);
+        return;
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function buy() {
+      if (!running || holding) return;
+      const frac = Math.min(1, (performance.now() - startTime) / DURATION_MS);
+      entryPrice = priceAt(frac);
+      buyTimeMs = performance.now();
+      const lookbackFrac = Math.max(0, frac - 2000 / DURATION_MS);
+      const priceTwoSecAgo = priceAt(lookbackFrac);
+      chasedUp = entryPrice > priceTwoSecAgo;
+      holding = true;
+      badge.textContent = '+0.0%';
+      badge.classList.add('on', 'win');
+    }
+
+    function sell() {
+      if (!running || !holding) return;
+      const frac = Math.min(1, (performance.now() - startTime) / DURATION_MS);
+      const exitPrice = priceAt(frac);
+      cash = cash * (exitPrice / entryPrice);
+      holding = false;
+      trades++;
+      badge.classList.remove('on', 'win', 'lose');
+      recordTrade(entryPrice, exitPrice, performance.now() - buyTimeMs, chasedUp);
+      updateStats();
+    }
+
+    function startRound() {
+      path = genPath();
+      resizeCanvas();
+      cash = START_CASH;
+      trades = 0;
+      holding = false;
+      running = true;
+      startTime = performance.now();
+      overlay.style.display = 'none';
+      badge.classList.remove('on', 'win', 'lose');
+      updateStats();
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function endRound() {
+      if (holding) {
+        const exitPrice = path[N_POINTS - 1];
+        cash = cash * (exitPrice / entryPrice);
+        holding = false;
+        trades++;
+        badge.classList.remove('on', 'win', 'lose');
+        recordTrade(entryPrice, exitPrice, performance.now() - buyTimeMs, chasedUp);
+      }
+      running = false;
+      cancelAnimationFrame(rafId);
+      updateStats();
+      roundsPlayed++;
+      saveRoundsPlayed();
+      renderDashboard();
+
+      const buyHoldReturn = ((path[N_POINTS - 1] - path[0]) / path[0]) * 100;
+      const yourReturn = ((cash - START_CASH) / START_CASH) * 100;
+      const diff = yourReturn - buyHoldReturn;
+
+      overlay.innerHTML = `
+        <h2>Round complete</h2>
+        <div class="tg-result-grid">
+          <div class="tg-result-cell">
+            <div class="l">Your return</div>
+            <div class="v" style="color:${yourReturn >= 0 ? '#2FE6A5' : '#FF5D78'}">${yourReturn >= 0 ? '+' : ''}${yourReturn.toFixed(1)}%</div>
+          </div>
+          <div class="tg-result-cell">
+            <div class="l">Buy &amp; hold</div>
+            <div class="v" style="color:${buyHoldReturn >= 0 ? '#2FE6A5' : '#FF5D78'}">${buyHoldReturn >= 0 ? '+' : ''}${buyHoldReturn.toFixed(1)}%</div>
+          </div>
+          <div class="tg-result-cell">
+            <div class="l">Vs. holding</div>
+            <div class="v" style="color:${diff >= 0 ? '#2FE6A5' : '#FF5D78'}">${diff >= 0 ? '+' : ''}${diff.toFixed(1)}pt</div>
+          </div>
+        </div>
+        <p style="max-width:420px;">You made ${trades} trade${trades === 1 ? '' : 's'}. Remember: this sim has no fees, no slippage,
+        and no one on the other side of your trade — real trading conditions erase most apparent edges like this.</p>
+        <button class="tg-btn" id="tg-again">Play Again</button>
+      `;
+      overlay.style.display = 'flex';
+      root.querySelector('#tg-again').addEventListener('click', () => {
+        round++;
+        startRound();
+      });
+    }
+
+    chartWrap.addEventListener('pointerdown', (e) => { e.preventDefault(); buy(); });
+    chartWrap.addEventListener('pointerup', (e) => { e.preventDefault(); sell(); });
+    chartWrap.addEventListener('pointerleave', () => { if (holding) sell(); });
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && running) { e.preventDefault(); buy(); }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space' && running) { e.preventDefault(); sell(); }
+    });
+
+    startBtn.addEventListener('click', () => { startRound(); });
+
+    dashReset.addEventListener('click', async () => {
+      try {
+        await window.storage.delete(STORAGE_KEY, false);
+        await window.storage.delete(ROUNDS_KEY, false);
+      } catch (e) {}
+      tradeHistory = [];
+      roundsPlayed = 0;
+      renderDashboard();
+    });
+
+    resizeCanvas();
+    loadHistory();
+  })();
+  </script>
+
+</main>
+
+<footer>
+  <p>Simulated price data for practice only — not financial advice.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz · Pattern Predictor — PatternDesk</title>
+<meta name="description" content="Freeze a chart mid-pattern and call up or down across 36 chart patterns — reversals, continuations, and breakout traps.">
+<meta name="theme-color" content="#100b24">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:title" content="Pattern Predictor — PatternDesk">
+<meta property="og:description" content="Freeze a chart mid-pattern and call up or down across 36 chart patterns.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="noise"></div>
+
+<header>
+  <div class="wrap headrow">
+    <div class="brand">
+      <a href="index.html" class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="12" width="3" height="8" rx="1" fill="#fff"/>
+          <rect x="10.5" y="6" width="3" height="14" rx="1" fill="#fff"/>
+          <rect x="18" y="9" width="3" height="11" rx="1" fill="#fff"/>
+        </svg>
+      </a>
+      <div class="brand-text">Pattern <span>Predictor</span></div>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Home</a>
+      <a href="quiz.html" class="on">Quiz</a>
+      <a href="game.html">Game</a>
+      <a href="shop.html">Shop</a>
+    </nav>
+    <div class="diffs">
+      <button class="diffBtn" data-diff="beginner">Beginner</button>
+      <button class="diffBtn" data-diff="intermediate">Intermediate</button>
+      <button class="diffBtn active" data-diff="all">All</button>
+    </div>
+    <div class="score-block">
+      <div class="label">Score</div>
+      <div class="val" id="scoreOut">0 / 0</div>
+    </div>
+  </div>
+</header>
+
+<div class="tape">
+  <div class="wrap">
+    <div class="tape-inner" id="tape">
+      <div class="tape-empty">round history will appear here as you play —</div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="stage-head">
+    <span class="pair">BTC / USD · mock feed</span>
+    <span class="price" id="price">61,200</span>
+  </div>
+
+  <div class="stage">
+    <div class="stage-chart">
+      <svg id="chart" viewBox="0 0 1160 620" preserveAspectRatio="none"></svg>
+      <svg id="patternSvg" viewBox="0 0 1160 620" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div class="quiz" id="quiz">
+      <p>Based on the chart so far, which outcome is more likely?</p>
+      <div class="quiz-btns">
+        <button class="qbtn up" id="btnUp">↑ Up</button>
+        <button class="qbtn down" id="btnDown">↓ Down</button>
+      </div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+
+    <div class="caption" id="captionWrap">
+      <p class="name" id="captionName"></p>
+      <p class="note" id="captionNote"></p>
+    </div>
+
+    <div class="stage-foot">
+      <button class="replay" id="replay">▶ Next round</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Simulated price data for practice only — not financial advice.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

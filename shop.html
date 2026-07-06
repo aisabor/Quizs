@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop · Strategy Guides — PatternDesk</title>
+<meta name="description" content="20 basic trading strategies broken down the same clear way — what it is, why it works, how to trade it, and a one-page cheat sheet. First one's free.">
+<meta name="theme-color" content="#100b24">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:title" content="Strategy Guides — PatternDesk">
+<meta property="og:description" content="20 basic trading strategies, each broken down the same clear way. First one's free.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .shop-hero{ padding:56px 0 8px; }
+  .shop-hero .eyebrow{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber); margin:0 0 14px; }
+  .shop-hero h1{ font-family:var(--font-display); font-size:clamp(28px,4vw,42px); font-weight:700; line-height:1.1; letter-spacing:-0.01em; margin:0 0 14px; max-width:680px; }
+  .shop-hero p.lead{ font-size:15px; color:var(--muted); max-width:560px; line-height:1.6; margin:0; }
+
+  .notice{ background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--blue); border-radius:8px; padding:12px 16px; margin:24px 0 8px; font-size:12.5px; color:var(--muted); max-width:720px; }
+  .notice b{ color:var(--text); font-weight:600; }
+
+  .shop-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; padding:28px 0 72px; }
+  .strategy-card{ background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:18px; display:flex; flex-direction:column; gap:10px; position:relative; transition:transform .18s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, box-shadow .18s ease; }
+  .strategy-card:hover{ transform:translateY(-3px); border-color:var(--blue); box-shadow:0 12px 26px -14px rgba(139,107,255,0.5); }
+  .strategy-card.flagship{ border-color:var(--amber); }
+  .strategy-card.flagship:hover{ border-color:var(--pink); box-shadow:0 12px 26px -14px rgba(255,127,216,0.5); }
+  .strategy-card .badge{ position:absolute; top:-9px; left:14px; background:var(--amber); color:#1a1305; font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 8px; border-radius:20px; }
+  .strategy-card .num{ font-family:var(--font-mono); font-size:10px; color:var(--muted-2); }
+  .strategy-card h3{ font-family:var(--font-display); font-size:16px; font-weight:600; margin:0; line-height:1.25; }
+  .strategy-card p{ font-size:11.5px; color:var(--muted); line-height:1.5; margin:0; flex-grow:1; }
+  .strategy-card .meta{ display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:10.5px; color:var(--muted-2); padding-top:8px; border-top:1px solid var(--border-soft); }
+  .strategy-card .price{ color:var(--text); font-weight:600; }
+  .buy-btn{ display:block; text-align:center; font-family:var(--font-body); font-size:12.5px; font-weight:600; padding:10px; border-radius:20px; text-decoration:none; margin-top:2px; cursor:pointer; border:none; transition:transform .15s cubic-bezier(.34,1.56,.64,1); }
+  .buy-btn.locked{ background:var(--panel-2); color:var(--muted); border:1px dashed var(--border); }
+  .buy-btn.free{ background:linear-gradient(135deg, var(--green), #17b37f); color:#0c2419; box-shadow:0 8px 18px -8px rgba(47,230,165,0.5); }
+  .buy-btn.free:hover{ transform:translateY(-2px) scale(1.03); }
+
+  .shop-foot{ text-align:center; padding:0 0 60px; }
+  .shop-foot p{ font-family:var(--font-mono); font-size:11px; color:var(--muted-2); }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<header>
+  <div class="wrap headrow">
+    <a href="index.html" class="brand" style="text-decoration:none;color:inherit;">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="12" width="3" height="8" rx="1" fill="#fff"/>
+          <rect x="10.5" y="6" width="3" height="14" rx="1" fill="#fff"/>
+          <rect x="18" y="9" width="3" height="11" rx="1" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="brand-text">Pattern<span>Desk</span></div>
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">Home</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="game.html">Game</a>
+      <a href="shop.html" class="on">Shop</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="shop-hero">
+    <p class="eyebrow">Strategy Guides</p>
+    <h1>20 basic strategies, each broken down the same clear way.</h1>
+    <p class="lead">Every guide covers one setup — what it is, why it works, exactly how to trade it, the mistakes that ruin it, and a one-page cheat sheet to keep next to your charts.</p>
+  </section>
+
+  <div class="notice">
+    <b>Checkout runs on Shopify</b> — clicking "Buy" starts a secure Shopify checkout. The Break &amp; Retest Playbook is unlocked as a free sample so you can see the full format first. PDF delivery for paid guides is set up separately in Shopify once each guide is ready.
+  </div>
+
+  <div class="shop-grid" id="shopGrid"></div>
+
+  <div class="shop-foot">
+    <p>Educational content only — not financial advice. All charts use illustrative, synthetic price data.</p>
+  </div>
+</main>
+
+<footer>
+  <p>Simulated price data for practice only — not financial advice.</p>
+</footer>
+
+<script>
+// ── Shopify wiring (Storefront Cart API, via the Headless channel) ──
+// Domain + public token come from: Shopify admin → Sales channels →
+// Headless → PatternDesk Shop → Storefront API → "Public access token".
+// The public token is safe to ship in frontend code — it can only do
+// what the enabled Storefront API permissions allow (read products,
+// build a cart, start checkout). Never put the *private* token here.
+const SHOPIFY_DOMAIN = 'dm9dbx-9z.myshopify.com';
+const STOREFRONT_ACCESS_TOKEN = 'fe503959c35574fc168a9586ede6d5f5';
+const STOREFRONT_API_VERSION = '2025-01';
+
+// Each strategy's variantId is the Shopify ProductVariant GID created for
+// it. null = no product yet, shows "coming soon".
+const STRATEGIES = [
+  { n:1, title:"The Break &amp; Retest Playbook", file:"break-and-retest.pdf", pages:13, price:12, hook:"The flagship guide — how to trade the moment a level flips sides.", flagship:true, free:true },
+
+  { n:2, title:"Moving Average Crossover", pages:5, price:7, hook:"The simplest trend-following signal there is — two lines, one cross.", available:true, variantId:"gid://shopify/ProductVariant/58349734297981" },
+  { n:3, title:"Support &amp; Resistance Bounce", pages:5, price:7, hook:"Buy the floor, sell the ceiling — trading's oldest idea, done right.", available:true, variantId:"gid://shopify/ProductVariant/58349734625661" },
+  { n:4, title:"Trendline Break", pages:5, price:7, hook:"When price can't keep pace with a trend's own shape anymore.", available:true, variantId:"gid://shopify/ProductVariant/58349734986109" },
+  { n:5, title:"Double Top &amp; Bottom", pages:5, price:7, hook:"Two failed attempts at the same price, and what comes next.", available:true, variantId:"gid://shopify/ProductVariant/58349735379325" },
+  { n:6, title:"Head &amp; Shoulders", pages:5, price:7, hook:"Three peaks, and the middle one always loses.", available:true, variantId:"gid://shopify/ProductVariant/58349735739773" },
+  { n:7, title:"Bull Flag &amp; Bear Flag", pages:5, price:7, hook:"A sharp move, a brief pause, then the same move again.", available:true, variantId:"gid://shopify/ProductVariant/58349736100221" },
+  { n:8, title:"Triangle Breakout", pages:5, price:7, hook:"Compression before expansion — and which way it breaks.", available:true, variantId:"gid://shopify/ProductVariant/58349736427901" },
+  { n:9, title:"RSI Divergence", pages:5, price:7, hook:"When price and momentum disagree, momentum is usually right.", available:true, variantId:"gid://shopify/ProductVariant/58349736722813" },
+  { n:10, title:"MACD Crossover", pages:5, price:7, hook:"A faster, noisier cousin of the moving average cross.", available:true, variantId:"gid://shopify/ProductVariant/58349737083261" },
+  { n:11, title:"Bollinger Band Squeeze", pages:5, price:7, hook:"When volatility goes quiet, it rarely stays that way.", available:true, variantId:"gid://shopify/ProductVariant/58349737378173" },
+  { n:12, title:"Fibonacci Retracement", pages:5, price:7, hook:"Where a pullback tends to stall before the trend resumes.", available:true, variantId:"gid://shopify/ProductVariant/58349737673085" },
+  { n:13, title:"Cup &amp; Handle", pages:5, price:7, hook:"A slow rounded base, one last shakeout, then the breakout.", available:true, variantId:"gid://shopify/ProductVariant/58349737967997" },
+  { n:14, title:"Inside Bar Breakout", pages:5, price:7, hook:"A quiet candle tucked inside the last one, right before it moves.", available:true, variantId:"gid://shopify/ProductVariant/58349738295677" },
+  { n:15, title:"Engulfing Candle", pages:5, price:7, hook:"One candle completely swallows the one before it.", available:true, variantId:"gid://shopify/ProductVariant/58349738623357" },
+  { n:16, title:"Pin Bar &amp; Hammer", pages:5, price:7, hook:"A single candle that says no to a price, loudly.", available:true, variantId:"gid://shopify/ProductVariant/58349739016573" },
+  { n:17, title:"Opening Range Breakout", pages:5, price:7, hook:"The first few minutes of a session often set the day's tone.", available:true, variantId:"gid://shopify/ProductVariant/58349739180413" },
+  { n:18, title:"VWAP Bounce", pages:5, price:7, hook:"The price the whole day's volume agrees on, tested again.", available:true, variantId:"gid://shopify/ProductVariant/58349739442557" },
+  { n:19, title:"Gap Fill", pages:5, price:7, hook:"The space price leaves behind, and its habit of returning to it.", available:true, variantId:"gid://shopify/ProductVariant/58349739704701" },
+  { n:20, title:"Range Trading", pages:5, price:7, hook:"Not every market trends — sometimes the strategy is the range itself.", available:true, variantId:"gid://shopify/ProductVariant/58349739966845" },
+];
+
+const grid = document.getElementById('shopGrid');
+grid.innerHTML = STRATEGIES.map(s => `
+  <div class="strategy-card ${s.flagship ? 'flagship' : ''}">
+    ${s.free ? '<span class="badge">Free sample</span>' : (s.available ? '<span class="badge">Available</span>' : '')}
+    <span class="num">${String(s.n).padStart(2,'0')} / 20</span>
+    <h3>${s.title}</h3>
+    <p>${s.hook}</p>
+    <div class="meta"><span>${s.pages} pages</span><span class="price">${s.free ? 'Free' : '£' + s.price}</span></div>
+    ${s.free
+      ? `<a class="buy-btn free" href="strategy-pdfs/${s.file}" target="_blank" rel="noopener">Download free</a>`
+      : (s.variantId
+          ? `<button class="buy-btn free" data-variant="${s.variantId}" onclick="buyNow(this)">Buy — £${s.price}</button>`
+          : (s.productUrl
+              ? `<a class="buy-btn free" href="${s.productUrl}" target="_blank" rel="noopener">Buy — £${s.price}</a>`
+              : `<button class="buy-btn locked" disabled>Buy — coming soon</button>`))
+    }
+  </div>
+`).join('');
+
+// ── Storefront API: create a cart with one line item, then redirect ──
+// straight to Shopify's hosted checkout for that cart.
+async function buyNow(btn) {
+  const variantId = btn.dataset.variant;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Starting checkout…';
+
+  const query = `
+    mutation CartCreate($lines: [CartLineInput!]!) {
+      cartCreate(input: { lines: $lines }) {
+        cart { id checkoutUrl }
+        userErrors { field message }
+      }
+    }
+  `;
+
+  try {
+    const res = await fetch(
+      `https://${SHOPIFY_DOMAIN}/api/${STOREFRONT_API_VERSION}/graphql.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': STOREFRONT_ACCESS_TOKEN,
+        },
+        body: JSON.stringify({
+          query,
+          variables: { lines: [{ merchandiseId: variantId, quantity: 1 }] },
+        }),
+      }
+    );
+    const data = await res.json();
+    const cart = data?.data?.cartCreate?.cart;
+    const errors = data?.data?.cartCreate?.userErrors;
+
+    if (errors && errors.length) {
+      console.error('Cart errors:', errors);
+      btn.textContent = 'Error — try again';
+      setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2500);
+      return;
+    }
+    if (cart?.checkoutUrl) {
+      window.location.href = cart.checkoutUrl;
+    } else {
+      throw new Error('No checkout URL returned');
+    }
+  } catch (err) {
+    console.error('PatternDesk checkout error:', err);
+    btn.textContent = 'Error — try again';
+    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2500);
+  }
+}
+
+// ── Digital delivery note ───────────────────────────────────────────
+// Plain Shopify products don't email a PDF after purchase — that needs a
+// digital-delivery app attached to each product. Shopify's own free
+// "Digital Downloads" app is the simplest option; SendOwl is a common
+// paid alternative with more automation. Either way, the PDF gets
+// attached inside Shopify itself, not in this file.
+</script>
+
+
+</body>
+</html>
