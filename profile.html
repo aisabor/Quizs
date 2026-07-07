@@ -54,7 +54,8 @@
     <h1>Your PatternDesk profile</h1>
     <p id="profileIntro">Log in to save your quiz results and trading game progress, then continue training from any device.</p>
     <div class="profile-actions" id="profileActions">
-      <button type="button" id="profileLogin">Log in or create account</button>
+      <button type="button" id="profileLogin">Log in</button>
+      <button type="button" id="profileSignup" class="secondary">Create account</button>
       <a href="quiz.html">Play quiz</a>
       <a href="game.html">Play game</a>
     </div>
@@ -81,7 +82,17 @@
 </main>
 
 <footer>
-  <p>Simulated price data for practice only — not financial advice.</p>
+  <div class="wrap site-footer-inner">
+    <p class="footer-disclaimer"><strong>Educational simulation only.</strong> PatternDesk is for learning and entertainment. All charts, prices, scores, and trading scenarios are simulated. Nothing on this site is financial, investment, legal, or tax advice, and nothing is a recommendation to buy or sell any asset. Trading and investing involve risk, including possible loss of capital.</p>
+    <div class="footer-links" aria-label="PatternDesk social links">
+      <a href="https://www.tiktok.com/@patterndeskgq" target="_blank" rel="noopener">TikTok</a>
+      <a href="https://www.instagram.com/patterndeskgq/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.youtube.com/@PatternDeskgq/shorts" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://www.facebook.com/profile.php?id=61589447145896" target="_blank" rel="noopener">Facebook</a>
+      <a href="https://x.com/TheClinicTrade" target="_blank" rel="noopener">X</a>
+    </div>
+    <p class="footer-copy">© 2026 PatternDesk. All rights reserved.</p>
+  </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -90,6 +101,7 @@
 (function(){
   const intro = document.getElementById('profileIntro');
   const loginBtn = document.getElementById('profileLogin');
+  const signupBtn = document.getElementById('profileSignup');
   const stats = document.getElementById('profileStats');
   const quizSection = document.getElementById('quizSection');
   const gameSection = document.getElementById('gameSection');
@@ -99,7 +111,10 @@
   const gameEmpty = document.getElementById('gameEmpty');
 
   loginBtn.addEventListener('click', function(){
-    if(window.PatternDeskAuth) window.PatternDeskAuth.open();
+    if(window.PatternDeskAuth) window.PatternDeskAuth.open('login');
+  });
+  signupBtn.addEventListener('click', function(){
+    if(window.PatternDeskAuth) window.PatternDeskAuth.open('signup');
   });
 
   function pct(n){ return isFinite(n) ? Math.round(n) + '%' : '0%'; }
@@ -116,10 +131,12 @@
       quizSection.style.display = 'none';
       gameSection.style.display = 'none';
       loginBtn.style.display = 'inline-flex';
+      signupBtn.style.display = 'inline-flex';
       return;
     }
 
     loginBtn.style.display = 'none';
+    signupBtn.style.display = 'none';
     intro.textContent = 'Signed in as ' + user.email + '. Your new quiz answers and completed game rounds will be saved here.';
     stats.style.display = 'grid';
     quizSection.style.display = 'block';
