@@ -545,14 +545,12 @@
 
     async function loadHistory() {
       try {
-        const res = await window.storage.get(STORAGE_KEY, false);
-        tradeHistory = res ? JSON.parse(res.value) : [];
+        tradeHistory = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       } catch (e) {
         tradeHistory = [];
       }
       try {
-        const res2 = await window.storage.get(ROUNDS_KEY, false);
-        roundsPlayed = res2 ? JSON.parse(res2.value) : 0;
+        roundsPlayed = JSON.parse(localStorage.getItem(ROUNDS_KEY) || '0');
       } catch (e) {
         roundsPlayed = 0;
       }
@@ -562,14 +560,33 @@
 
     async function saveRoundsPlayed() {
       try {
-        await window.storage.set(ROUNDS_KEY, JSON.stringify(roundsPlayed), false);
+        localStorage.setItem(ROUNDS_KEY, JSON.stringify(roundsPlayed));
       } catch (e) {}
     }
 
     async function saveHistory() {
       try {
-        await window.storage.set(STORAGE_KEY, JSON.stringify(tradeHistory.slice(-500)), false);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tradeHistory.slice(-500)));
       } catch (e) {}
+    }
+
+    async function saveCloudGameResult(yourReturn, buyHoldReturn, diff) {
+      if (!window.PatternDeskAuth) return;
+      const user = await window.PatternDeskAuth.getUser();
+      if (!user) return;
+      try {
+        await window.PatternDeskAuth.supabase.from('game_results').insert({
+          user_id: user.id,
+          starting_cash: START_CASH,
+          ending_cash: Number(cash.toFixed(2)),
+          return_percent: Number(yourReturn.toFixed(3)),
+          trades: trades,
+          buy_hold_return_percent: Number(buyHoldReturn.toFixed(3)),
+          vs_buy_hold_percent: Number(diff.toFixed(3))
+        });
+      } catch (e) {
+        console.warn('Could not save game result', e);
+      }
     }
 
     function recordTrade(entry, exit, holdMs, chasedUp) {
@@ -725,6 +742,7 @@
       const buyHoldReturn = ((path[N_POINTS - 1] - path[0]) / path[0]) * 100;
       const yourReturn = ((cash - START_CASH) / START_CASH) * 100;
       const diff = yourReturn - buyHoldReturn;
+      saveCloudGameResult(yourReturn, buyHoldReturn, diff);
 
       overlay.innerHTML = `
         <h2>Round complete</h2>
@@ -767,8 +785,8 @@
 
     dashReset.addEventListener('click', async () => {
       try {
-        await window.storage.delete(STORAGE_KEY, false);
-        await window.storage.delete(ROUNDS_KEY, false);
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(ROUNDS_KEY);
       } catch (e) {}
       tradeHistory = [];
       roundsPlayed = 0;
@@ -786,5 +804,8 @@
   <p>Simulated price data for practice only — not financial advice.</p>
 </footer>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
 </body>
 </html>

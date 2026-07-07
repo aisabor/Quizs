@@ -19,6 +19,7 @@
   var wins = 0, played = 0;
   var difficulty = 'all';
   var history = [];
+  var LOCAL_KEY = 'pd-quiz-progress';
 
   function neg(arr){ return arr.map(function(v){ return -v; }); }
 
@@ -204,16 +205,97 @@
     patternSvg.appendChild(lineEl);
   }
 
-  function pushTape(def, won){
-    history.unshift({name:def.name, won:won});
-    if(history.length > 20) history.pop();
+  function renderTape(){
     tape.innerHTML = '';
+    if(!history.length){
+      tape.innerHTML = '<div class="tape-empty">round history will appear here as you play —</div>';
+      return;
+    }
     history.forEach(function(h){
       var chip = document.createElement('div');
       chip.className = 'chip ' + (h.won ? 'win' : 'loss');
       chip.innerHTML = (h.won ? '✓ ' : '✕ ') + '<b>' + h.name + '</b>';
       tape.appendChild(chip);
     });
+  }
+
+  function saveLocalProgress(){
+    try {
+      localStorage.setItem(LOCAL_KEY, JSON.stringify({ wins:wins, played:played, history:history }));
+    } catch(e) {}
+  }
+
+  function loadLocalProgress(){
+    try {
+      var saved = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
+      wins = saved.wins || 0;
+      played = saved.played || 0;
+      history = Array.isArray(saved.history) ? saved.history.slice(0,20) : [];
+      scoreOut.textContent = wins + ' / ' + played;
+      renderTape();
+    } catch(e) { renderTape(); }
+  }
+
+  async function loadCloudProgress(){
+    if(!window.PatternDeskAuth) return;
+    var user = await window.PatternDeskAuth.getUser();
+    if(!user) return loadLocalProgress();
+    var res = await window.PatternDeskAuth.supabase
+      .from('quiz_results')
+      .select('pattern_name,is_correct,created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending:false })
+      .limit(1000);
+    if(res.error || !res.data) return;
+    played = res.data.length;
+    wins = res.data.filter(function(r){ return r.is_correct; }).length;
+    history = res.data.slice(0,20).map(function(r){ return { name:r.pattern_name, won:r.is_correct }; });
+    scoreOut.textContent = wins + ' / ' + played;
+    renderTape();
+  }
+
+  async function saveCloudQuizResult(def, choice, won){
+    if(!window.PatternDeskAuth) return;
+    var user = await window.PatternDeskAuth.getUser();
+    if(!user) return;
+    try {
+      await window.PatternDeskAuth.supabase.from('quiz_results').insert({
+        user_id: user.id,
+        pattern_name: def.name,
+        user_choice: choice,
+        correct_choice: def.dir,
+        is_correct: won,
+        difficulty: def.diff
+      });
+
+      var existing = await window.PatternDeskAuth.supabase
+        .from('pattern_mastery')
+        .select('attempts,correct')
+        .eq('user_id', user.id)
+        .eq('pattern_name', def.name)
+        .maybeSingle();
+
+      var attempts = 1;
+      var correct = won ? 1 : 0;
+      if(existing.data){
+        attempts = (existing.data.attempts || 0) + 1;
+        correct = (existing.data.correct || 0) + (won ? 1 : 0);
+      }
+      await window.PatternDeskAuth.supabase.from('pattern_mastery').upsert({
+        user_id: user.id,
+        pattern_name: def.name,
+        attempts: attempts,
+        correct: correct,
+        last_seen_at: new Date().toISOString()
+      }, { onConflict:'user_id,pattern_name' });
+    } catch(e) { console.warn('Could not save quiz result', e); }
+  }
+
+  function pushTape(def, won){
+    history.unshift({name:def.name, won:won});
+    if(history.length > 20) history.pop();
+    renderTape();
+    saveLocalProgress();
   }
 
   function newRound(){
@@ -282,6 +364,8 @@
         var label = (won ? 'Correct — ' : 'It went ' + def.dir + ' — ') + def.name + ' (' + def.cat + ')';
         showCaption(label, def.note);
         pushTape(def, won);
+        saveLocalProgress();
+        saveCloudQuizResult(def, chosen, won);
         setTimeout(function(){ replayBtn.style.display = 'inline-flex'; }, 1200);
       }
     }, 130);
@@ -299,5 +383,7 @@
   btnUp.addEventListener('click', function(){ lockChoice('up'); });
   btnDown.addEventListener('click', function(){ lockChoice('down'); });
   replayBtn.addEventListener('click', newRound);
+  loadLocalProgress();
+  if(window.PatternDeskAuth){ window.PatternDeskAuth.onAuthReady(loadCloudProgress); }
   newRound();
 })();

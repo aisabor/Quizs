@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile · PatternDesk</title>
+<meta name="description" content="View your saved PatternDesk quiz and trading game progress.">
+<meta name="theme-color" content="#100b24">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:title" content="PatternDesk Profile">
+<meta property="og:description" content="Track your quiz progress, pattern mastery, and trading game results.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-86W18DDM3E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-86W18DDM3E');
+</script>
+</head>
+<body>
+<div class="noise"></div>
+
+<header>
+  <div class="wrap headrow">
+    <a href="index.html" class="brand" style="text-decoration:none;color:inherit;">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="12" width="3" height="8" rx="1" fill="#fff"/>
+          <rect x="10.5" y="6" width="3" height="14" rx="1" fill="#fff"/>
+          <rect x="18" y="9" width="3" height="11" rx="1" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="brand-text">Pattern<span>Desk</span></div>
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">Home</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="game.html">Game</a>
+      <a href="shop.html">Shop</a>
+      <a href="profile.html" class="on">Profile</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="profile-hero">
+    <p class="eyebrow">Saved progress</p>
+    <h1>Your PatternDesk profile</h1>
+    <p id="profileIntro">Log in to save your quiz results and trading game progress, then continue training from any device.</p>
+    <div class="profile-actions" id="profileActions">
+      <button type="button" id="profileLogin">Log in or create account</button>
+      <a href="quiz.html">Play quiz</a>
+      <a href="game.html">Play game</a>
+    </div>
+  </section>
+
+  <section class="profile-grid" id="profileStats" style="display:none;">
+    <div class="profile-card"><div class="label">Quiz attempts</div><div class="value" id="statAttempts">0</div></div>
+    <div class="profile-card"><div class="label">Quiz accuracy</div><div class="value" id="statAccuracy">0%</div></div>
+    <div class="profile-card"><div class="label">Game rounds</div><div class="value" id="statRounds">0</div></div>
+    <div class="profile-card"><div class="label">Best game return</div><div class="value" id="statBestReturn">0%</div></div>
+  </section>
+
+  <section class="profile-section" id="quizSection" style="display:none;">
+    <h2>Pattern mastery</h2>
+    <p class="profile-empty" id="masteryEmpty">Play the quiz to start building pattern mastery data.</p>
+    <ul class="profile-list" id="masteryList"></ul>
+  </section>
+
+  <section class="profile-section" id="gameSection" style="display:none;">
+    <h2>Recent game results</h2>
+    <p class="profile-empty" id="gameEmpty">Play the trading game to save your results here.</p>
+    <ul class="profile-list" id="gameList"></ul>
+  </section>
+</main>
+
+<footer>
+  <p>Simulated price data for practice only — not financial advice.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+(function(){
+  const intro = document.getElementById('profileIntro');
+  const loginBtn = document.getElementById('profileLogin');
+  const stats = document.getElementById('profileStats');
+  const quizSection = document.getElementById('quizSection');
+  const gameSection = document.getElementById('gameSection');
+  const masteryList = document.getElementById('masteryList');
+  const gameList = document.getElementById('gameList');
+  const masteryEmpty = document.getElementById('masteryEmpty');
+  const gameEmpty = document.getElementById('gameEmpty');
+
+  loginBtn.addEventListener('click', function(){
+    if(window.PatternDeskAuth) window.PatternDeskAuth.open();
+  });
+
+  function pct(n){ return isFinite(n) ? Math.round(n) + '%' : '0%'; }
+  function fmtReturn(n){
+    if(n === null || n === undefined || isNaN(Number(n))) return '0%';
+    n = Number(n);
+    return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+  }
+
+  async function loadProfile(user){
+    if(!user){
+      intro.textContent = 'Log in to save your quiz results and trading game progress, then continue training from any device.';
+      stats.style.display = 'none';
+      quizSection.style.display = 'none';
+      gameSection.style.display = 'none';
+      loginBtn.style.display = 'inline-flex';
+      return;
+    }
+
+    loginBtn.style.display = 'none';
+    intro.textContent = 'Signed in as ' + user.email + '. Your new quiz answers and completed game rounds will be saved here.';
+    stats.style.display = 'grid';
+    quizSection.style.display = 'block';
+    gameSection.style.display = 'block';
+
+    const sb = window.PatternDeskAuth.supabase;
+    const quiz = await sb.from('quiz_results').select('pattern_name,is_correct,created_at').eq('user_id', user.id).order('created_at', { ascending:false }).limit(1000);
+    const games = await sb.from('game_results').select('return_percent,buy_hold_return_percent,vs_buy_hold_percent,trades,created_at').eq('user_id', user.id).order('created_at', { ascending:false }).limit(50);
+    const mastery = await sb.from('pattern_mastery').select('pattern_name,attempts,correct,last_seen_at').eq('user_id', user.id).order('attempts', { ascending:false }).limit(10);
+
+    const quizData = quiz.data || [];
+    const gameData = games.data || [];
+    const masteryData = mastery.data || [];
+    const correct = quizData.filter(function(r){ return r.is_correct; }).length;
+    const accuracy = quizData.length ? (correct / quizData.length) * 100 : 0;
+    const bestReturn = gameData.length ? Math.max.apply(null, gameData.map(function(g){ return Number(g.return_percent || 0); })) : 0;
+
+    document.getElementById('statAttempts').textContent = quizData.length;
+    document.getElementById('statAccuracy').textContent = pct(accuracy);
+    document.getElementById('statRounds').textContent = gameData.length;
+    document.getElementById('statBestReturn').textContent = fmtReturn(bestReturn);
+
+    masteryList.innerHTML = '';
+    if(masteryData.length){
+      masteryEmpty.style.display = 'none';
+      masteryData.forEach(function(m){
+        const acc = m.attempts ? (m.correct / m.attempts) * 100 : 0;
+        const li = document.createElement('li');
+        li.innerHTML = '<span><b>' + m.pattern_name + '</b><br>' + m.correct + ' correct / ' + m.attempts + ' attempts</span><span>' + pct(acc) + '</span>';
+        masteryList.appendChild(li);
+      });
+    } else {
+      masteryEmpty.style.display = 'block';
+    }
+
+    gameList.innerHTML = '';
+    if(gameData.length){
+      gameEmpty.style.display = 'none';
+      gameData.slice(0,8).forEach(function(g){
+        const date = new Date(g.created_at).toLocaleDateString();
+        const li = document.createElement('li');
+        li.innerHTML = '<span><b>' + fmtReturn(g.return_percent) + '</b><br>' + (g.trades || 0) + ' trades · ' + date + '</span><span>vs hold ' + fmtReturn(g.vs_buy_hold_percent) + '</span>';
+        gameList.appendChild(li);
+      });
+    } else {
+      gameEmpty.style.display = 'block';
+    }
+  }
+
+  function init(){
+    if(!window.PatternDeskAuth) return;
+    window.PatternDeskAuth.onAuthReady(loadProfile);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>
