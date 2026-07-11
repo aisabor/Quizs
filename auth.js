@@ -178,6 +178,7 @@
     const { error } = await client.auth.signInWithPassword({ email: email, password: password });
     if (error) return setMessage(error.message, true);
     setMessage('Logged in. Your progress will now save.');
+    if (window.pdTrack) window.pdTrack('login', { method: 'email' });
     setTimeout(closeModal, 700);
   }
 
@@ -200,6 +201,7 @@
     });
     if (error) return setMessage(error.message, true);
     setMessage('Account created. Check your email, confirm it, then log in.');
+    if (window.pdTrack) window.pdTrack('sign_up', { method: 'email' });
     setMode('login');
   }
 

@@ -1,0 +1,27 @@
+PatternDesk GA4 tracking upgrade
+Measurement ID: G-86W18DDM3E
+
+Custom events added:
+- homepage_quiz_click
+- homepage_game_click
+- sign_up
+- login
+- profile_view
+- quiz_start
+- quiz_answer
+- quiz_round_complete
+- quiz_complete (every 10 answered rounds)
+- game_start
+- game_round_complete
+- guide_view
+- checkout_click
+
+Local testing:
+Analytics is automatically disabled on localhost, 127.0.0.1, [::1], and *.local.
+The live patterndesk.co.uk site continues to send analytics normally.
+
+After deployment:
+1. Open GA4 > Reports > Realtime.
+2. Use the live site and perform one quiz answer, one game round, and one guide click.
+3. Confirm the custom events appear. Realtime/DebugView is quickest; standard reports can take up to 24 hours.
+4. In GA4 Admin > Events / Key events, mark the events you consider conversions, such as sign_up, quiz_complete, game_round_complete, and checkout_click.

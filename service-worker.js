@@ -1,4 +1,4 @@
-const CACHE_NAME = 'patterndesk-v1';
+const CACHE_NAME = 'patterndesk-v2';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -9,6 +9,7 @@ const CORE_ASSETS = [
   '/style.css',
   '/script.js',
   '/auth.js',
+  '/analytics.js',
   '/favicon.svg',
   '/site.webmanifest',
   '/assets/patterndesk-logo-green.jpg',

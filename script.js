@@ -19,6 +19,7 @@
   var wins = 0, played = 0;
   var difficulty = 'all';
   var history = [];
+  var analyticsQuizStarted = false;
   var LOCAL_KEY = 'pd-quiz-progress';
 
   function neg(arr){ return arr.map(function(v){ return -v; }); }
@@ -299,6 +300,10 @@
   }
 
   function newRound(){
+    if (!analyticsQuizStarted) {
+      analyticsQuizStarted = true;
+      if (window.pdTrack) window.pdTrack('quiz_start', { difficulty: difficulty });
+    }
     replayBtn.style.display = 'none';
     quiz.style.display = 'none';
     patternSvg.innerHTML = '';
@@ -333,6 +338,12 @@
   function lockChoice(dir){
     if(chosen) return;
     chosen = dir;
+    if (window.pdTrack && state.def) window.pdTrack('quiz_answer', {
+      difficulty: difficulty,
+      pattern_name: state.def.name,
+      answer: dir,
+      correct_answer: state.def.dir
+    });
     if(dir === 'up'){ btnUp.style.outline = '2px solid #fff'; }
     else { btnDown.style.outline = '2px solid #fff'; }
     var n = 3;
@@ -366,6 +377,19 @@
         pushTape(def, won);
         saveLocalProgress();
         saveCloudQuizResult(def, chosen, won);
+        if (window.pdTrack) window.pdTrack('quiz_round_complete', {
+          difficulty: difficulty,
+          pattern_name: def.name,
+          is_correct: won,
+          score: wins,
+          rounds_played: played
+        });
+        if (played > 0 && played % 10 === 0 && window.pdTrack) window.pdTrack('quiz_complete', {
+          difficulty: difficulty,
+          score: wins,
+          rounds_played: played,
+          accuracy_percent: Math.round((wins / played) * 100)
+        });
         setTimeout(function(){ replayBtn.style.display = 'inline-flex'; }, 1200);
       }
     }, 130);

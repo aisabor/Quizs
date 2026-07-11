@@ -66,15 +66,7 @@
   .shop-foot{ text-align:center; padding:0 0 60px; }
   .shop-foot p{ font-family:var(--font-mono); font-size:11px; color:var(--muted-2); }
 </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-86W18DDM3E"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-86W18DDM3E');
-</script>
+<script src="analytics.js"></script>
 </head>
 <body>
 <div class="noise"></div>
@@ -117,7 +109,7 @@
       <h2>Try the Break &amp; Retest Playbook first.</h2>
       <p>Download the free guide before buying anything and see the exact PatternDesk PDF format.</p>
     </div>
-    <a class="primary-cta" href="strategy-pdfs/break-and-retest.pdf" target="_blank" rel="noopener">Download free PDF →</a>
+    <a class="primary-cta" href="strategy-pdfs/break-and-retest.pdf" target="_blank" rel="noopener" data-guide-name="The Break & Retest Playbook">Download free PDF →</a>
   </section>
 
   <div class="shop-grid" id="shopGrid"></div>
@@ -187,7 +179,7 @@ grid.innerHTML = STRATEGIES.map(s => `
     <p>${s.hook}</p>
     <div class="meta"><span>${s.pages} pages</span><span class="price">${s.free ? 'Free' : '£' + s.price}</span></div>
     ${s.free
-      ? `<a class="buy-btn free" href="strategy-pdfs/${s.file}" target="_blank" rel="noopener">Download free</a>`
+      ? `<a class="buy-btn free" href="strategy-pdfs/${s.file}" target="_blank" rel="noopener" data-guide-name="${s.title.replace(/&amp;/g, '&')}">Download free</a>`
       : (s.variantId
           ? `<button class="buy-btn free" data-variant="${s.variantId}" onclick="buyNow(this)">Buy — £${s.price}</button>`
           : (s.productUrl
@@ -197,9 +189,21 @@ grid.innerHTML = STRATEGIES.map(s => `
   </div>
 `).join('');
 
+document.addEventListener('click', function(event) {
+  const guideLink = event.target.closest('a[data-guide-name]');
+  if (!guideLink || !window.pdTrack) return;
+  window.pdTrack('guide_view', {
+    guide_name: guideLink.getAttribute('data-guide-name') || 'Unknown guide',
+    file_url: guideLink.href
+  });
+});
+
 // ── Storefront API: create a cart with one line item, then redirect ──
 // straight to Shopify's hosted checkout for that cart.
 async function buyNow(btn) {
+  const card = btn.closest('.strategy-card');
+  const guideName = card && card.querySelector('h3') ? card.querySelector('h3').textContent.trim() : 'Unknown guide';
+  if (window.pdTrack) window.pdTrack('checkout_click', { guide_name: guideName, price: Number((btn.textContent.match(/£([0-9.]+)/) || [0, 0])[1]) });
   const variantId = btn.dataset.variant;
   const originalText = btn.textContent;
   btn.disabled = true;
